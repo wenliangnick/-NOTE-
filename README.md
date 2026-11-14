@@ -1,0 +1,2 @@
+# -NOTE-
+statistic_note
