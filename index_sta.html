@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大學統計學：機率分布筆記</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary: #2563eb;
+      --discrete-color: #1e3a8a;
+      --discrete-bg: #dbeafe;
+      --continuous-color: #065f46;
+      --continuous-bg: #d1fae5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.75;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* 首頁 Header 與目錄區 */
+    .hero-header {
+      background: var(--card-bg);
+      padding: 2.25rem;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+      margin-bottom: 2rem;
+    }
+
+    .hero-header h1 { font-size: 1.9rem; margin-bottom: 0.4rem; }
+    .subtitle { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    /* 篩選與搜尋列 */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .filter-btn {
+      padding: 0.45rem 1rem;
+      border: 1px solid var(--border-color);
+      background: #fff;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      transition: all 0.15s;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--text-main);
+      color: #fff;
+      border-color: var(--text-main);
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.45rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); }
+
+    /* 快速跳轉目錄 */
+    .quick-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .quick-nav a {
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: var(--text-main);
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .quick-nav a:hover { background: #e2e8f0; }
+
+    /* 分布筆記卡片 */
+    .dist-card {
+      background: var(--card-bg);
+      padding: 2.25rem;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+      margin-bottom: 2rem;
+    }
+
+    .card-header {
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .badge-discrete { background: var(--discrete-bg); color: var(--discrete-color); }
+    .badge-continuous { background: var(--continuous-bg); color: var(--continuous-color); }
+
+    .card-header h2 { font-size: 1.55rem; margin-bottom: 0.25rem; }
+    .notation { color: var(--text-muted); font-size: 1.05rem; }
+
+    h3 {
+      font-size: 1.15rem;
+      margin: 1.5rem 0 0.75rem;
+      padding-left: 0.65rem;
+      border-left: 4px solid var(--primary);
+    }
+
+    ul { padding-left: 1.4rem; }
+    li { margin-bottom: 0.4rem; }
+
+    .formula-box {
+      background: #f1f5f9;
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      margin: 0.75rem 0;
+      overflow-x: auto;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75rem 0;
+    }
+    .stats-table th, .stats-table td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    .stats-table th { background-color: #f8fafc; width: 32%; font-weight: 600; }
+
+    /* 可展開推導區塊 */
+    details.derivation-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 0.9rem 1.25rem;
+      margin-top: 1.25rem;
+    }
+    details.derivation-box summary {
+      font-weight: 700;
+      cursor: pointer;
+      color: #92400e;
+      user-select: none;
+    }
+    .derivation-content {
+      margin-top: 0.85rem;
+      padding-top: 0.85rem;
+      border-top: 1px dashed #fcd34d;
+      overflow-x: auto;
+    }
+
+    .back-top {
+      display: inline-block;
+      margin-top: 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .back-top:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="wrapper" id="top">
+    <!-- 首頁總覽與控制列 -->
+    <header class="hero-header">
+      <h1>大學統計學：機率分布筆記</h1>
+      <p class="subtitle">整合離散型與連續型機率分布之核心定義、動差摘要、關鍵性質與推導過程</p>
+
+      <div class="controls">
+        <button class="filter-btn active" data-filter="all">全部顯示</button>
+        <button class="filter-btn" data-filter="discrete">離散型 Discrete</button>
+        <button class="filter-btn" data-filter="continuous">連續型 Continuous</button>
+        <input type="text" id="searchInput" class="search-input" placeholder="搜尋分布名稱或符號（例如：Binomial, 常態）...">
+      </div>
+
+      <!-- 快速跳轉目錄（AI 新增分布時須同步於此加入錨點） -->
+      <nav class="quick-nav" id="quick-nav">
+        <a href="#dist-binomial">二項分布 Binomial</a>
+        <a href="#dist-normal">常態分布 Normal</a>
+        <a href="#dist-exponential">指數分布 Exponential</a>
+      </nav>
+    </header>
+
+    <!-- 分布筆記內容區 -->
+    <main id="notes-list">
+
+      <!-- ==================== 1. 二項分布 ==================== -->
+      <article class="dist-card" id="dist-binomial" data-type="discrete">
+        <div class="card-header">
+          <span class="badge badge-discrete">離散型 Discrete</span>
+          <h2>二項分布 (Binomial Distribution)</h2>
+          <p class="notation">標準記號：$X \sim \text{Bin}(n, p)$</p>
+        </div>
+
+        <h3>1. 直觀意義與應用場景</h3>
+        <p>描述在 <strong>$n$ 次獨立且相同（i.i.d.）的伯努利試驗（Bernoulli Process）</strong>中，達成「成功」的總次數[cite: 90]。每次試驗僅有成功（機率 $p$）與失敗（機率 $q = 1 - p$）兩種互斥結果，且各次試驗互不影響（如放回抽樣）[cite: 90]。常見於品管不良品抽檢、民調支持人數等情境[cite: 91, 92]。</p>
+
+        <h3>2. 核心定義與函數</h3>
+        <ul>
+          <li><strong>參數空間</strong>：試驗次數 $n \in \mathbb{N}$，單次成功機率 $p \in [0, 1]$[cite: 90, 91]</li>
+          <li><strong>支撐集 (Support)</strong>：$x \in \{0, 1, 2, \dots, n\}$[cite: 91]</li>
+        </ul>
+        <div class="formula-box">
+          <p><strong>機率質量函數 (PMF)：</strong></p>
+          $$p_X(x) = P(X = x) = \binom{n}{x} p^x (1 - p)^{n - x}, \quad x = 0, 1, \dots, n$$
+          <p><strong>累積分布函數 (CDF)：</strong></p>
+          $$F_X(x) = P(X \le x) = \sum_{k=0}^{\lfloor x \rfloor} \binom{n}{k} p^k (1 - p)^{n - k}$$
+        </div>
+
+        <h3>3. 核心統計量摘要</h3>
+        <table class="stats-table">
+          <tr><th>期望值 $E[X]$</th><td>$np$[cite: 92]</td></tr>
+          <tr><th>變異數 $\text{Var}(X)$</th><td>$np(1 - p) = npq$[cite: 92]</td></tr>
+          <tr><th>動差母函數 (MGF) $M_X(t)$</th><td>$(1 - p + pe^t)^n, \quad \forall t \in \mathbb{R}$</td></tr>
+        </table>
+
+        <h3>4. 關鍵性質與定理</h3>
+        <ul>
+          <li><strong>變異數上限</strong>：因 $0 \le 1 - p \le 1$，二項分布的變異數恆不大於期望值（$\text{Var}(X) \le E[X]$）[cite: 93]。</li>
+          <li><strong>失敗次數對稱性</strong>：若 $X \sim \text{Bin}(n, p)$，則失敗次數 $Y = n - X \sim \text{Bin}(n, 1 - p)$[cite: 93]。</li>
+          <li><strong>卜瓦松逼近</strong>：當 $n$ 極大且 $p$ 極小（經驗法則：$n \ge 100$ 且 $np \le 10$）時，可用 $\text{Poi}(\mu = np)$ 近似[cite: 97]。</li>
+          <li><strong>常態逼近</strong>：當 $np \ge 5$ 且 $n(1 - p) \ge 5$ 時，可用 $N(np, np(1-p))$ 近似（需搭配 $\pm 0.5$ 連續性修正）[cite: 108]。</li>
+        </ul>
+
+        <details class="derivation-box">
+          <summary>點擊展開推導：利用指示變數求 $E[X]$ 與 $\text{Var}(X)$</summary>
+          <div class="derivation-content">
+            <p>令 $X = X_1 + X_2 + \dots + X_n$，其中 $X_i \stackrel{\text{i.i.d.}}{\sim} \text{Ber}(p)$ 為第 $i$ 次試驗是否成功的指示變數[cite: 92]：</p>
+            $$E[X_i] = p, \quad \text{Var}(X_i) = E[X_i^2] - (E[X_i])^2 = p - p^2 = p(1 - p)$$
+            <p>由期望值線性性質與獨立隨機變數變異數可加性得[cite: 92]：</p>
+            $$E[X] = \sum_{i=1}^n E[X_i] = np, \qquad \text{Var}(X) = \sum_{i=1}^n \text{Var}(X_i) = np(1 - p)$$
+          </div>
+        </details>
+
+        <a href="#top" class="back-top">&uarr; 返回頂部目錄</a>
+      </article>
+
+      <!-- ==================== 2. 常態分布 ==================== -->
+      <article class="dist-card" id="dist-normal" data-type="continuous">
+        <div class="card-header">
+          <span class="badge badge-continuous">連續型 Continuous</span>
+          <h2>常態分布 (Normal Distribution)</h2>
+          <p class="notation">標準記號：$X \sim N(\mu, \sigma^2)$（亦稱高斯分布）</p>
+        </div>
+
+        <h3>1. 直觀意義與應用場景</h3>
+        <p>統計學中最核心的連續型分布，圖形為以平均數 $\mu$ 為中心的左右對稱鐘形曲線[cite: 105]。根據<strong>中央極限定理（CLT）</strong>，大量獨立隨機變數之和在標準化後會趨近於常態分布，因此廣泛用於大樣本推論、自然測量誤差與品質管制[cite: 105, 127]。</p>
+
+        <h3>2. 核心定義與函數</h3>
+        <ul>
+          <li><strong>參數空間</strong>：位置參數 $\mu \in \mathbb{R}$，尺度參數 $\sigma^2 > 0$</li>
+          <li><strong>支撐集 (Support)</strong>：$x \in (-\infty, \infty)$[cite: 105]</li>
+        </ul>
+        <div class="formula-box">
+          <p><strong>機率密度函數 (PDF)：</strong></p>
+          $$f_X(x) = \frac{1}{\sqrt{2\pi}\sigma} \exp\left( -\frac{(x - \mu)^2}{2\sigma^2} \right), \quad -\infty < x < \infty$$
+          <p><strong>累積分布函數 (CDF)：</strong>無初等函數封閉解，透過標準常態分布表 $\Phi(z)$ 查詢：</p>
+          $$F_X(x) = \Phi\left(\frac{x - \mu}{\sigma}\right) = \int_{-\infty}^{\frac{x-\mu}{\sigma}} \frac{1}{\sqrt{2\pi}} e^{-t^2/2} \, dt$$
+        </div>
+
+        <h3>3. 核心統計量摘要</h3>
+        <table class="stats-table">
+          <tr><th>期望值 $E[X]$</th><td>$\mu$</td></tr>
+          <tr><th>變異數 $\text{Var}(X)$</th><td>$\sigma^2$</td></tr>
+          <tr><th>動差母函數 (MGF) $M_X(t)$</th><td>$\exp\left(\mu t + \frac{1}{2}\sigma^2 t^2\right), \quad \forall t \in \mathbb{R}$</td></tr>
+        </table>
+
+        <h3>4. 關鍵性質與定理</h3>
+        <ul>
+          <li><strong>線性轉換與標準化</strong>：若 $X \sim N(\mu, \sigma^2)$，則 $aX + b \sim N(a\mu + b, a^2\sigma^2)$；特別地，$Z = \frac{X - \mu}{\sigma} \sim N(0, 1)$[cite: 106]。</li>
+          <li><strong>經驗法則 (68-95-99.7 Rule)</strong>：資料落在 $\mu \pm \sigma$、$\mu \pm 2\sigma$、$\mu \pm 3\sigma$ 內的機率分別約為 $68\%$、$95\%$ 與 $99.7\%$[cite: 42]。</li>
+          <li><strong>獨立可加性</strong>：若 $X_i \stackrel{\text{indep.}}{\sim} N(\mu_i, \sigma_i^2)$，則 $\sum_{i=1}^n X_i \sim N\left(\sum_{i=1}^n \mu_i, \sum_{i=1}^n \sigma_i^2\right)$。</li>
+        </ul>
+
+        <details class="derivation-box">
+          <summary>點擊展開推導：常態分布的動差母函數 (MGF)</summary>
+          <div class="derivation-content">
+            <p>先求標準常態 $Z \sim N(0, 1)$ 的 MGF，利用指數配方法 $z^2 - 2tz = (z - t)^2 - t^2$：</p>
+            $$M_Z(t) = \int_{-\infty}^{\infty} e^{tz} \frac{1}{\sqrt{2\pi}} e^{-z^2/2} \, dz = e^{t^2/2} \underbrace{\int_{-\infty}^{\infty} \frac{1}{\sqrt{2\pi}} e^{-(z-t)^2/2} \, dz}_{= 1 \text{（} N(t,1) \text{ 全機率積分）}} = e^{t^2/2}$$
+            <p>再透過 $X = \mu + \sigma Z$ 的線性轉換得出一般常態分布之 MGF：</p>
+            $$M_X(t) = E[e^{t(\mu + \sigma Z)}] = e^{\mu t} M_Z(\sigma t) = \exp\left(\mu t + \frac{1}{2}\sigma^2 t^2\right)$$
+          </div>
+        </details>
+
+        <a href="#top" class="back-top">&uarr; 返回頂部目錄</a>
+      </article>
+
+      <!-- ==================== 3. 指數分布 ==================== -->
+      <article class="dist-card" id="dist-exponential" data-type="continuous">
+        <div class="card-header">
+          <span class="badge badge-continuous">連續型 Continuous</span>
+          <h2>指數分布 (Exponential Distribution)</h2>
+          <p class="notation">標準記號：$X \sim \text{Exp}(\lambda)$</p>
+        </div>
+
+        <h3>1. 直觀意義與應用場景</h3>
+        <p>與卜瓦松分布（計算單位時間內事件發生「次數」）互為對偶，指數分布描述的是在卜瓦松過程中，<strong>「兩次事件之間的時間間隔」或「等待首次事件發生所需的時間」</strong>[cite: 110]。常見於零件壽命、顧客進店等待時間、客服下一通來電間隔[cite: 110]。</p>
+
+        <h3>2. 核心定義與函數</h3>
+        <ul>
+          <li><strong>參數空間</strong>：發生率參數 $\lambda > 0$（單位時間平均發生次數，注意時間單位須一致）[cite: 110, 112]</li>
+          <li><strong>支撐集 (Support)</strong>：$x \in [0, \infty)$[cite: 110]</li>
+        </ul>
+        <div class="formula-box">
+          <p><strong>機率密度函數 (PDF)：</strong></p>
+          $$f_X(x) = \lambda e^{-\lambda x}, \quad x \ge 0$$
+          <p><strong>累積分布函數 (CDF)：</strong></p>
+          $$F_X(x) = P(X \le x) = 1 - e^{-\lambda x}, \quad x \ge 0 \qquad \text{（右尾生存機率：} P(X > x) = e^{-\lambda x}\text{）}$$
+        </div>
+
+        <h3>3. 核心統計量摘要</h3>
+        <table class="stats-table">
+          <tr><th>期望值 $E[X]$</th><td>$\dfrac{1}{\lambda}$[cite: 110]</td></tr>
+          <tr><th>變異數 $\text{Var}(X)$</th><td>$\dfrac{1}{\lambda^2}$[cite: 110]</td></tr>
+          <tr><th>動差母函數 (MGF) $M_X(t)$</th><td>$\dfrac{\lambda}{\lambda - t}, \quad t < \lambda$</td></tr>
+        </table>
+
+        <h3>4. 關鍵性質與定理</h3>
+        <ul>
+          <li><strong>無記憶性 (Memoryless Property)</strong>：唯一具有無記憶性的連續型分布，即 $P(X > a + t \mid X > a) = P(X > t)$[cite: 111]。</li>
+          <li><strong>與卜瓦松分布的連結</strong>：若單位時間事件發生數 $N(t) \sim \text{Poi}(\lambda t)$，則首次發生時間 $W$ 滿足 $P(W > w) = P(N(w) = 0) = e^{-\lambda w}$，即 $W \sim \text{Exp}(\lambda)$[cite: 111]。</li>
+        </ul>
+
+        <details class="derivation-box">
+          <summary>點擊展開推導：指數分布的無記憶性證明</summary>
+          <div class="derivation-content">
+            <p>由條件機率定義，對任意 $a, t > 0$（因為 $\{X > a + t\} \subset \{X > a\}$）[cite: 111]：</p>
+            $$P(X > a + t \mid X > a) = \frac{P(\{X > a + t\} \cap \{X > a\})}{P(X > a)} = \frac{P(X > a + t)}{P(X > a)} = \frac{e^{-\lambda(a + t)}}{e^{-\lambda a}} = e^{-\lambda t} = P(X > t)$$
+          </div>
+        </details>
+
+        <a href="#top" class="back-top">&uarr; 返回頂部目錄</a>
+      </article>
+
+    </main>
+  </div>
+
+  <script>
+    // 分類篩選與即時搜尋功能
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const searchInput = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.dist-card');
+    let currentFilter = 'all';
+
+    function updateDisplay() {
+      const keyword = searchInput.value.toLowerCase().trim();
+      cards.forEach(card => {
+        const type = card.getAttribute('data-type');
+        const text = card.innerText.toLowerCase();
+        const matchType = (currentFilter === 'all' || type === currentFilter);
+        const matchKeyword = text.includes(keyword);
+        card.style.display = (matchType && matchKeyword) ? 'block' : 'none';
+      });
+    }
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.getAttribute('data-filter');
+        updateDisplay();
+      });
+    });
+
+    searchInput.addEventListener('input', updateDisplay);
+  </script>
+</body>
+</html>
